@@ -13,24 +13,25 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Song Lyrics Display',
+      title: 'Aexor',
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
         scaffoldBackgroundColor: Colors.black87, // dark background
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const HomePage(),
+        '/': (context) => const HomePage(), 
         '/lyrics': (context) => const LyricsPage(),
       },
       onGenerateRoute: (settings) {
         // Handle possible errors when routing, for example invalid arguments
         if (settings.name == '/lyrics') {
-          final Map<String, String> song = settings.arguments as Map<String, String>;
-          if (song.isEmpty) {
+          final args = settings.arguments;
+          if (args == null || args is! Map) {
             return _errorRoute();
           }
         }
+
         return null;
       },
     );

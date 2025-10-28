@@ -1,149 +1,183 @@
 import 'package:flutter/material.dart';
-class HomePage extends StatelessWidget {
+import '../services/player_manager.dart';
+import '../services/mini_player.dart'; // Import the new mini player
+
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   final List<Map<String, String>> songs = const [
     {
       'title': 'About You',
       'artist': 'The 1975',
       'musicUrl': 'assets/songs/about_you.mp3',
       'lyricsUrl': 'assets/lyrics/about_you.txt',
+      'coverUrl': 'assets/covers/about_you.jpg',
+      'albumUrl': 'assets/album_cover/about_you_album.jpg',
     },
     {
       'title': 'The Only Exception',
       'artist': 'Paramore',
       'musicUrl': 'assets/songs/the_only_exception.mp3',
       'lyricsUrl': 'assets/lyrics/the_only_exception.txt',
+      'coverUrl': 'assets/covers/the_only_exception.jpg',
+      'albumUrl': 'assets/album_cover/the_only_exception_album.jpg',
     },
     {
       'title': 'Robbers',
       'artist': 'The 1975',
       'musicUrl': 'assets/songs/robbers.mp3',
-      'lyricsUrl': 'assets/lyrics/Robbers.txt',
+      'lyricsUrl': 'assets/lyrics/robbers.txt',
+      'coverUrl': 'assets/covers/robbers.jpg',
+      'albumUrl': 'assets/album_cover/robbers_album.jpg',
     },
     {
       'title': 'August',
       'artist': 'Taylor Swift',
       'musicUrl': 'assets/songs/august.mp3',
       'lyricsUrl': 'assets/lyrics/august.txt',
+      'coverUrl': 'assets/covers/august.jpg',
+      'albumUrl': 'assets/album_cover/august_album.jpg',
     },
     {
       'title': 'Cardigan',
       'artist': 'Taylor Swift',
       'musicUrl': 'assets/songs/cardigan.mp3',
       'lyricsUrl': 'assets/lyrics/cardigan.txt',
+      'coverUrl': 'assets/covers/cardigan.jpg',
+      'albumUrl': 'assets/album_cover/cardigan_album.jpg',
     },
     {
-      'title': 'Lover',
-      'artist': 'Taylor Swift ft. Shawn Mendes ',
-      'musicUrl': 'assets/songs/lover.mp3',
-      'lyricsUrl': 'assets/lyrics/lover.txt',
+      'title': 'Luther',
+      'artist': 'Kendrick Lamar ft. Sza',
+      'musicUrl': 'assets/songs/luther.mp3',
+      'lyricsUrl': 'assets/lyrics/luther.txt',
+      'coverUrl': 'assets/covers/luther.jpg',
+      'albumUrl': 'assets/album_cover/luther_album.jpg',
     },
     {
       'title': 'Falling',
       'artist': 'Harry Styles',
       'musicUrl': 'assets/songs/falling.mp3',
       'lyricsUrl': 'assets/lyrics/falling.txt',
+      'coverUrl': 'assets/covers/falling.jpg',
+      'albumUrl': 'assets/album_cover/falling_album.jpg',
     },
     {
       'title': 'Birds of a Feather',
       'artist': 'Billie Eilish',
       'musicUrl': 'assets/songs/birds_of_a_feather.mp3',
       'lyricsUrl': 'assets/lyrics/birds_of_a_feather.txt',
+      'coverUrl': 'assets/covers/birds_of_a_feather.jpg',
+      'albumUrl': 'assets/album_cover/birds_of_a_feather_album.jpg',
     },
     {
       'title': 'So High School',
       'artist': 'Taylor Swift',
       'musicUrl': 'assets/songs/so_high_school.mp3',
       'lyricsUrl': 'assets/lyrics/so_high_school.txt',
+      'coverUrl': 'assets/covers/so_high_school.jpg',
+      'albumUrl': 'assets/album_cover/so_high_school_album.jpg',
     },
     {
-      'title': 'Balisong',
-      'artist': 'Rico Blanco',
-      'musicUrl': 'assets/songs/balisong.mp3',
-      'lyricsUrl': 'assets/lyrics/balisong.txt',
+      'title': 'As It Was',
+      'artist': 'Harry Styles',
+      'musicUrl': 'assets/songs/as_it_was.mp3',
+      'lyricsUrl': 'assets/lyrics/as_it_was.txt',
+      'coverUrl': 'assets/covers/as_it_was.jpg',
+      'albumUrl': 'assets/album_cover/as_it_was_album.jpg',
     },
   ];
 
   @override
+  void initState() {
+    super.initState();
+    PlayerManager.init();
+  }
+
+  void _openLyrics(int index) {
+    Navigator.pushNamed(
+      context,
+      '/lyrics',
+      arguments: {'songs': songs, 'index': index},
+    );
+  }
+
+  Widget _buildSongTile(int index) {
+    final song = songs[index];
+    return GestureDetector(
+onTap: () {
+  PlayerManager.playSong({
+    ...song,
+    'index': index,
+    'songs': songs,
+    'albumUrl': song['albumUrl'] ?? song['coverUrl'],
+  });
+  _openLyrics(index);
+},
+
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF121212),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: ListTile(
+          title: Text(
+            song['title'] ?? '',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 17,
+            ),
+          ),
+          subtitle: Text(
+            song['artist'] ?? '',
+            style: const TextStyle(color: Colors.white70, fontSize: 13),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 34, 30, 30),
+      backgroundColor: const Color(0xFF0A0A0A),
       appBar: AppBar(
-          title: const Text(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
           'Aexor',
           style: TextStyle(
-            fontFamily: 'Roboto', fontSize: 26, fontWeight: FontWeight.bold,color: Colors.greenAccent, letterSpacing: 1.5,),
+            color: Colors.lightGreenAccent,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.1,
+          ),
         ),
-        backgroundColor: const Color.fromARGB(255, 22, 22, 22),
         centerTitle: true,
-        foregroundColor: Colors.white,
-        elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView.builder(
-          itemCount: songs.length,
-          itemBuilder: (context, index) {
-            final song = songs[index];
-            return GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(
-                context,
-                '/lyrics',
-                arguments: {
-                  'songs': songs,
-                  'index': index,
-                },
-              );
-            },
-              child: Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[850],
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.music_note, color: Color.fromARGB(255, 56, 236, 149)),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            song['title'] ?? 'Unknown',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'by ${song['artist'] ?? 'Unknown Artist'}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Color.fromARGB(255, 198, 187, 187),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ListView.builder(
+              padding: const EdgeInsets.only(bottom: 100),
+              itemCount: songs.length,
+              itemBuilder: (context, i) => _buildSongTile(i),
+            ),
+          ),
+          // Mini Player at the bottom
+          const Align(
+            alignment: Alignment.bottomCenter,
+            child: MiniPlayer(),
+          ),
+        ],
       ),
     );
   }
