@@ -122,8 +122,8 @@ class MiniPlayer extends StatelessWidget {
                       IconButton(
                         icon: Icon(
                           isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill,
-                          color: const Color.fromARGB(249, 32, 239, 60),
-                          size: 36,
+                          color: const Color.fromARGB(255, 4, 250, 78),
+                          size: 55,
                         ),
                         onPressed: PlayerManager.togglePlayPause,
                       ),

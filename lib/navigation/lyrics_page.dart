@@ -38,8 +38,32 @@ class _LyricsPageState extends State<LyricsPage> {
     PlayerManager.isPlaying.addListener(() {
       if (mounted) setState(() {});
     });
-  }
 
+    // 👇 ADD THIS: Detect when song ends
+    PlayerManager.position.addListener(() {
+      final pos = PlayerManager.position.value;
+      final dur = PlayerManager.duration.value;
+
+      // If playback reaches end
+      if (dur.inSeconds > 0 && pos >= dur - const Duration(milliseconds: 500)) {
+        // Avoid multiple triggers by checking if playing stopped
+        if (!PlayerManager.isPlaying.value) {
+          // Let PlayerManager handle repeat logic
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              if (PlayerManager.repeatMode.value == RepeatMode.one) {
+                // replay same song
+                _playCurrentSong();
+              } else {
+                // move to next
+                _playNextSong();
+              }
+            }
+          });
+        }
+      }
+    });
+  }
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -255,11 +279,11 @@ class _LyricsPageState extends State<LyricsPage> {
                                 break;
                               case RepeatMode.one:
                                 icon = Icons.repeat_one;
-                                color = const Color.fromARGB(255, 56, 236, 149);
+                                color = const Color.fromARGB(255, 10, 255, 2);
                                 break;
                               case RepeatMode.all:
                                 icon = Icons.repeat;
-                                color = const Color.fromARGB(255, 56, 236, 149);
+                                color = const Color.fromARGB(255, 10, 255, 2);
                                 break;
                             }
 
@@ -283,7 +307,7 @@ class _LyricsPageState extends State<LyricsPage> {
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              color: const Color.fromARGB(255, 56, 236, 149),
+                              color: const Color.fromARGB(255, 4, 250, 78),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -302,7 +326,7 @@ class _LyricsPageState extends State<LyricsPage> {
                           icon: Icon(
                             Icons.shuffle,
                             color: _isShuffle
-                                ? const Color.fromARGB(255, 56, 236, 149)
+                                ? const Color.fromARGB(255, 10, 255, 2)
                                 : Colors.white70,
                           ),
                           iconSize: 30,

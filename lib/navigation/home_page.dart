@@ -10,6 +10,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final background = 'assets/bg/bg_icon.jpg';
+
   final List<Map<String, String>> songs = const [
     {
       'title': 'About You',
@@ -121,7 +123,7 @@ onTap: () {
 },
 
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 10),
+        margin: const EdgeInsets.symmetric(vertical: 3),
         decoration: BoxDecoration(
           color: const Color(0xFF121212),
           borderRadius: BorderRadius.circular(16),
@@ -144,41 +146,59 @@ onTap: () {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Aexor',
-          style: TextStyle(
-            color: Colors.lightGreenAccent,
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.1,
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.transparent, // Let background show through
+    appBar: AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      title: const Text(
+        'Aexor',
+        style: TextStyle(
+          color: Color.fromARGB(255, 3, 253, 24),
+          fontSize: 25,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.1,
+        ),
+      ),
+      centerTitle: true,
+    ),
+    body: Stack(
+      children: [
+        // 🖼️ Background Image
+        Positioned.fill(
+          child: Image.asset(
+            'assets/bg/bg_icon.jpg', // <--- replace with your own image
+            fit: BoxFit.cover,
           ),
         ),
-        centerTitle: true,
-      ),
-      body: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: ListView.builder(
-              padding: const EdgeInsets.only(bottom: 100),
-              itemCount: songs.length,
-              itemBuilder: (context, i) => _buildSongTile(i),
-            ),
+
+        // 🌑 Optional dark overlay for better text contrast
+        Positioned.fill(
+          child: Container(
+            color: Colors.black.withOpacity(0.5),
           ),
-          // Mini Player at the bottom
-          const Align(
-            alignment: Alignment.bottomCenter,
-            child: MiniPlayer(),
+        ),
+
+        // 🎵 Song list
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 100),
+            itemCount: songs.length,
+            itemBuilder: (context, i) => _buildSongTile(i),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+
+        // 🎚️ Mini Player at the bottom
+        const Align(
+          alignment: Alignment.bottomCenter,
+          child: MiniPlayer(),
+        ),
+      ],
+    ),
+  );
+}
+
 }
