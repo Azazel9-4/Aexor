@@ -16,38 +16,27 @@ class MyApp extends StatelessWidget {
       title: 'Aexor',
       theme: ThemeData(
         primarySwatch: Colors.deepPurple,
-        scaffoldBackgroundColor: Colors.black87, // dark background
+        scaffoldBackgroundColor: Colors.black87,
       ),
+
       initialRoute: '/',
       routes: {
-        '/': (context) => const HomePage(), 
+        '/': (context) => const HomePage(),
         '/lyrics': (context) => const LyricsPage(),
       },
-      onGenerateRoute: (settings) {
-        // Handle possible errors when routing, for example invalid arguments
-        if (settings.name == '/lyrics') {
-          final args = settings.arguments;
-          if (args == null || args is! Map) {
-            return _errorRoute();
-          }
-        }
 
+      // Smooth fade transition for LyricsPage
+      onGenerateRoute: (settings) {
+        if (settings.name == '/lyrics') {
+          return PageRouteBuilder(
+            settings: settings,
+            transitionDuration: const Duration(milliseconds: 450),
+            pageBuilder: (_, animation, __) =>
+                FadeTransition(opacity: animation, child: const LyricsPage()),
+          );
+        }
         return null;
       },
-    );
-  }
-  // Define an error route for invalid arguments
-  MaterialPageRoute _errorRoute() {
-    return MaterialPageRoute(
-      builder: (context) => Scaffold(
-        appBar: AppBar(title: const Text('Error')),
-        body: const Center(
-          child: Text(
-            'Failed to load song data.',
-            style: TextStyle(color: Colors.red, fontSize: 18),
-          ),
-        ),
-      ),
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/player_manager.dart';
-import '../services/mini_player.dart'; // Import the new mini player
+import '../services/mini_player.dart'; // Mini player
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -112,16 +112,15 @@ class _HomePageState extends State<HomePage> {
   Widget _buildSongTile(int index) {
     final song = songs[index];
     return GestureDetector(
-onTap: () {
-  PlayerManager.playSong({
-    ...song,
-    'index': index,
-    'songs': songs,
-    'albumUrl': song['albumUrl'] ?? song['coverUrl'],
-  });
-  _openLyrics(index);
-},
-
+      onTap: () {
+        PlayerManager.playSong({
+          ...song,
+          'index': index,
+          'songs': songs,
+          'albumUrl': song['albumUrl'] ?? song['coverUrl'],
+        });
+        _openLyrics(index);
+      },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 3),
         decoration: BoxDecoration(
@@ -139,66 +138,64 @@ onTap: () {
           ),
           subtitle: Text(
             song['artist'] ?? '',
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 13,
+            ),
           ),
         ),
       ),
     );
   }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Colors.transparent, // Let background show through
-    appBar: AppBar(
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
       backgroundColor: Colors.transparent,
-      elevation: 0,
-      title: const Text(
-        'Aexor',
-        style: TextStyle(
-          color: Color.fromARGB(255, 3, 253, 24),
-          fontSize: 25,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.1,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'Aexor',
+          style: TextStyle(
+            color: Color.fromARGB(255, 3, 253, 24),
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.1,
+          ),
         ),
+        centerTitle: true,
       ),
-      centerTitle: true,
-    ),
-    body: Stack(
-      children: [
-        // 🖼️ Background Image
-        Positioned.fill(
-          child: Image.asset(
-            'assets/bg/bg_icon.jpg', // <--- replace with your own image
-            fit: BoxFit.cover,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              background,
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
 
-        // 🌑 Optional dark overlay for better text contrast
-        Positioned.fill(
-          child: Container(
-            color: Colors.black.withOpacity(0.5),
+          Positioned.fill(
+            child: Container(
+              color: Colors.black.withOpacity(0.5),
+            ),
           ),
-        ),
 
-        // 🎵 Song list
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: ListView.builder(
-            padding: const EdgeInsets.only(bottom: 100),
-            itemCount: songs.length,
-            itemBuilder: (context, i) => _buildSongTile(i),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: ListView.builder(
+              padding: const EdgeInsets.only(bottom: 100),
+              itemCount: songs.length,
+              itemBuilder: (context, i) => _buildSongTile(i),
+            ),
           ),
-        ),
 
-        // 🎚️ Mini Player at the bottom
-        const Align(
-          alignment: Alignment.bottomCenter,
-          child: MiniPlayer(),
-        ),
-      ],
-    ),
-  );
-}
-
+          const Align(
+            alignment: Alignment.bottomCenter,
+            child: MiniPlayer(),
+          ),
+        ],
+      ),
+    );
+  }
 }

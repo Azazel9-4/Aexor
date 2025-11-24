@@ -2,7 +2,7 @@ import 'dart:math';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import '../services/player_manager.dart'; // we use RepeatMode from here
+import '../services/player_manager.dart';
 
 class LyricsPage extends StatefulWidget {
   const LyricsPage({super.key});
@@ -27,8 +27,22 @@ class _LyricsPageState extends State<LyricsPage> {
   void initState() {
     super.initState();
     PlayerManager.init();
+  // 🔥 LISTEN FOR SONG CHANGE FROM PlayerManager
+  PlayerManager.current.addListener(() {
+    final song = PlayerManager.current.value;
+    if (song == null) return;
+    if (!mounted) return;
 
-    // Keep UI synced with playback
+    setState(() {
+      _currentIndex = song['index'];
+      _currentTitle = song['title'];
+      _currentArtist = song['artist'];
+      _currentMusicUrl = song['musicUrl'];
+      _currentCoverUrl = song['coverUrl'];
+    });
+
+    _loadLyrics(_currentTitle); // reload lyrics when song changes automatically
+  });
     PlayerManager.position.addListener(() {
       if (mounted) setState(() {});
     });
@@ -39,31 +53,27 @@ class _LyricsPageState extends State<LyricsPage> {
       if (mounted) setState(() {});
     });
 
-    // 👇 ADD THIS: Detect when song ends
+    // Auto-next logic
     PlayerManager.position.addListener(() {
       final pos = PlayerManager.position.value;
       final dur = PlayerManager.duration.value;
 
-      // If playback reaches end
       if (dur.inSeconds > 0 && pos >= dur - const Duration(milliseconds: 500)) {
-        // Avoid multiple triggers by checking if playing stopped
         if (!PlayerManager.isPlaying.value) {
-          // Let PlayerManager handle repeat logic
           Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted) {
-              if (PlayerManager.repeatMode.value == RepeatMode.one) {
-                // replay same song
-                _playCurrentSong();
-              } else {
-                // move to next
-                _playNextSong();
-              }
-            }
+            if (!mounted) return;
+
+          if (PlayerManager.repeatMode.value == RepeatMode.one) {
+            _updateSong(); // forces UI + lyrics + animation update
+          } else {
+            _playNextSong();
+          }
           });
         }
       }
     });
   }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -75,6 +85,7 @@ class _LyricsPageState extends State<LyricsPage> {
     final resume = args['resume'] ?? false;
 
     final song = _songs[_currentIndex];
+
     _currentTitle = song['title'] ?? '';
     _currentArtist = song['artist'] ?? '';
     _currentMusicUrl = song['musicUrl'] ?? '';
@@ -130,10 +141,14 @@ class _LyricsPageState extends State<LyricsPage> {
 
   void _updateSong() {
     final song = _songs[_currentIndex];
-    _currentTitle = song['title'] ?? '';
-    _currentArtist = song['artist'] ?? '';
-    _currentMusicUrl = song['musicUrl'] ?? '';
-    _currentCoverUrl = song['coverUrl'] ?? '';
+
+    setState(() {
+      _currentTitle = song['title']!;
+      _currentArtist = song['artist']!;
+      _currentMusicUrl = song['musicUrl']!;
+      _currentCoverUrl = song['coverUrl']!;
+    });
+
     _loadLyrics(_currentTitle);
     _playCurrentSong();
   }
@@ -156,8 +171,11 @@ class _LyricsPageState extends State<LyricsPage> {
       ),
       body: Stack(
         children: [
-          if (_currentCoverUrl.isNotEmpty)
-            Container(
+          // Smooth Background Transition
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 500),
+            child: Container(
+              key: ValueKey(_currentCoverUrl),
               decoration: BoxDecoration(
                 image: DecorationImage(
                   image: AssetImage(_currentCoverUrl),
@@ -169,6 +187,8 @@ class _LyricsPageState extends State<LyricsPage> {
                 ),
               ),
             ),
+          ),
+
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 80, 16, 16),
             child: Column(
@@ -177,95 +197,119 @@ class _LyricsPageState extends State<LyricsPage> {
                 Center(
                   child: Column(
                     children: [
-                      Text(
-                        _currentTitle,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      // Animated Title
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        child: Text(
+                          _currentTitle,
+                          key: ValueKey(_currentTitle),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        "by $_currentArtist",
-                        style: const TextStyle(
-                          fontSize: 18,
-                          color: Color.fromARGB(200, 255, 255, 255),
+
+                      // Animated Artist
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 400),
+                        child: Text(
+                          "by $_currentArtist",
+                          key: ValueKey(_currentArtist),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Color.fromARGB(200, 255, 255, 255),
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
+
                 const SizedBox(height: 24),
 
-                // 🎤 Lyrics
+                // Animated Lyrics
                 Expanded(
-                  child: SingleChildScrollView(
-                    child: Text(
-                      _lyrics,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 22,
-                        height: 1.5,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 8,
-                            color: Colors.black54,
-                            offset: Offset(1, 1),
-                          )
-                        ],
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    child: SingleChildScrollView(
+                      key: ValueKey(_lyrics),
+                      child: Text(
+                        _lyrics,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                          height: 1.5,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 8,
+                              color: Colors.black54,
+                              offset: Offset(1, 1),
+                            )
+                          ],
+                        ),
                       ),
-                      textAlign: TextAlign.left,
                     ),
                   ),
                 ),
+
                 const SizedBox(height: 20),
 
-                // 🎚️ Slider + Time
+                // Slider and Timing
                 ValueListenableBuilder(
                   valueListenable: PlayerManager.position,
                   builder: (_, pos, __) {
                     final dur = PlayerManager.duration.value;
                     final pos = PlayerManager.position.value;
+
                     return Column(
                       children: [
                         Slider(
                           activeColor: Colors.white,
                           inactiveColor: Colors.white30,
-                          value: pos.inSeconds
-                              .toDouble()
-                              .clamp(0, dur.inSeconds.toDouble()),
+                          value: pos.inSeconds.toDouble().clamp(
+                                0,
+                                dur.inSeconds.toDouble(),
+                              ),
                           max: dur.inSeconds.toDouble() > 0
                               ? dur.inSeconds.toDouble()
                               : 1,
-                          onChanged: (value) =>
-                              PlayerManager.seek(Duration(seconds: value.toInt())),
+                          onChanged: (value) => PlayerManager.seek(
+                            Duration(seconds: value.toInt()),
+                          ),
                         ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(_formatTime(pos),
-                                style: const TextStyle(color: Colors.white70)),
-                            Text(_formatTime(dur),
-                                style: const TextStyle(color: Colors.white70)),
+                            Text(
+                              _formatTime(pos),
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                            Text(
+                              _formatTime(dur),
+                              style: const TextStyle(color: Colors.white70),
+                            ),
                           ],
                         ),
                       ],
                     );
                   },
                 ),
+
                 const SizedBox(height: 15),
 
-                // 🎧 Controls
+                // Controls
                 ValueListenableBuilder(
                   valueListenable: PlayerManager.isPlaying,
                   builder: (_, playing, __) {
                     return Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        // 🔁 Repeat button (synced with PlayerManager)
+                        // Repeat Button
                         ValueListenableBuilder<RepeatMode>(
                           valueListenable: PlayerManager.repeatMode,
                           builder: (context, repeatMode, _) {
@@ -279,11 +323,11 @@ class _LyricsPageState extends State<LyricsPage> {
                                 break;
                               case RepeatMode.one:
                                 icon = Icons.repeat_one;
-                                color = const Color.fromARGB(255, 10, 255, 2);
+                                color = const Color.fromARGB(255, 4, 231, 121);
                                 break;
                               case RepeatMode.all:
                                 icon = Icons.repeat;
-                                color = const Color.fromARGB(255, 10, 255, 2);
+                                color = const Color.fromARGB(255, 4, 231, 121);
                                 break;
                             }
 
@@ -294,20 +338,22 @@ class _LyricsPageState extends State<LyricsPage> {
                             );
                           },
                         ),
+
                         IconButton(
-                          icon:
-                              const Icon(Icons.skip_previous, color: Colors.white),
+                          icon: const Icon(Icons.skip_previous,
+                              color: Colors.white),
                           iconSize: 50,
                           onPressed: _playPreviousSong,
                         ),
+
                         InkWell(
                           onTap: PlayerManager.togglePlayPause,
                           borderRadius: BorderRadius.circular(50),
                           child: Container(
                             width: 80,
                             height: 80,
-                            decoration: BoxDecoration(
-                              color: const Color.fromARGB(255, 4, 250, 78),
+                            decoration: const BoxDecoration(
+                              color: Color.fromARGB(255, 4, 250, 78),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -317,16 +363,18 @@ class _LyricsPageState extends State<LyricsPage> {
                             ),
                           ),
                         ),
+
                         IconButton(
                           icon: const Icon(Icons.skip_next, color: Colors.white),
                           iconSize: 50,
                           onPressed: _playNextSong,
                         ),
+
                         IconButton(
                           icon: Icon(
                             Icons.shuffle,
                             color: _isShuffle
-                                ? const Color.fromARGB(255, 10, 255, 2)
+                                ? const Color.fromARGB(255, 4, 231, 121)
                                 : Colors.white70,
                           ),
                           iconSize: 30,
